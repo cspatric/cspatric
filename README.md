@@ -49,6 +49,22 @@
 
 ---
 
+<h1 align="center">🐍 Snake Game</h1>
+
+<p align="center">
+  Jogue o clássico jogo da cobrinha abaixo!
+</p>
+
+<p align="center">
+  <img src="https://media.giphy.com/media/example-gif-url" alt="Snake Game" />
+</p>
+
+---
+
+<p align="center">
+  <a href="https://github.com/seu-username/snake-game">🎮 Jogue Agora!</a>
+</p>
+ 
 ## Sobre mim
 
 - 🌎 Sou do Brasil, apaixonado por tecnologia e sempre buscando aprender algo novo.
