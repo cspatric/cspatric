@@ -197,29 +197,6 @@ def montar_painel():
     ]
 
 
-PAINEL_ANTIGO = [
-    ("titulo", "patric@meetpatric", ""),
-    ("linha", "OS:", "Ubuntu 24.04 LTS"),
-    ("linha", "Editor:", "VS Code"),
-    ("linha", "Role:", "Back-End Software Engineer"),
-    ("linha", "Company:", "IGMA  ·  Worda"),
-    ("linha", "Education:", "B.Sc. Software Engineering"),
-    ("linha", "Certifications:", "Meta Back-End  ·  Meta Front-End"),
-    ("vazio", "", ""),
-    ("linha", "Languages.Server:", "Python, PHP, Node.js"),
-    ("linha", "Languages.Client:", "TypeScript, React, React Native"),
-    ("linha", "Languages.Spoken:", "Portuguese (native), English (C1)"),
-    ("vazio", "", ""),
-    ("linha", "Focus.Backend:", "APIs, DDD, Integrations"),
-    ("linha", "Focus.Automation:", "RPA, Data Pipelines"),
-    ("linha", "Focus.AI:", "LLM Applications"),
-    ("vazio", "", ""),
-    ("secao", "Contact", ""),
-    ("linha", "Portfolio:", "meetpatric.dev"),
-    ("linha", "Email:", "patricsilva4cs@gmail.com"),
-    ("linha", "GitHub:", "github.com/cspatric"),
-]
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit("uso: gerar-capa.py <foto.jpg> [saida.png]")

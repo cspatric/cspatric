@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".assets/capa.png" alt="Patric Silva — back-end software engineer" width="100%">
+  <img src=".assets/capa.png" alt="Patric Silva" width="100%">
 </p>
 
 <p align="center">
