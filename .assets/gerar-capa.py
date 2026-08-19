@@ -174,8 +174,6 @@ def montar_painel():
         ("titulo", "patric@meetpatric", ""),
         ("linha", "OS:", "Ubuntu 24.04 LTS"),
         ("linha", "Editor:", "VS Code"),
-        ("linha", "Role:", "Back-End Software Engineer"),
-        ("linha", "Company:", "IGMA  ·  Worda"),
         ("linha", "Education:", "B.Sc. Software Engineering"),
         ("linha", "Certifications:", "Meta Back-End  ·  Meta Front-End"),
         ("vazio", "", ""),
