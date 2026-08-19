@@ -23,8 +23,6 @@ server side, and in React / React Native when the interface is mine to build too
 What I actually enjoy: modelling a domain properly, wiring integrations that do not break at 3am, and
 putting AI to work on real problems instead of demos.
 
-**Right now** I am a Back-End Software Engineer at **IGMA** and a Front-End Software Engineer at **Worda**.
-
 ---
 
 <p align="center">
