@@ -7,7 +7,10 @@ sem depender de servico de terceiro.
 uso: python3 .assets/gerar-capa.py <foto.jpg> [saida.png]
 """
 import sys
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+import json
+import urllib.request
+
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 FONTE = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
 FONTE_NEGRITO = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf"
@@ -20,14 +23,20 @@ TITULO = (210, 168, 255)
 VERDE = (63, 185, 80)
 
 # do mais escuro ao mais claro; o fundo e escuro, entao brilho alto = glifo cheio
-RAMPA = " .:-=+*#%@"
+RAMPA = " .+#@"
 
 # Foto precisa de bem mais celulas que um logo para continuar reconhecivel.
-COLUNAS = 121
-LINHAS = 104
+# Menos colunas = caractere maior. Abaixo de ~70 a figura deixa de ser
+# reconhecivel: fotografia nao sobrevive em baixa resolucao como um logo.
+COLUNAS = 64
+LINHAS = 61
 CORPO = 13                     # altura da fonte do painel
-CELULA_L, CELULA_A = 3, 5      # tamanho da celula da arte
-FONTE_ARTE = 5
+CELULA_L, CELULA_A = 6, 10     # tamanho da celula da arte
+FONTE_ARTE = 10
+
+# Abaixo deste ponto a celula vira fundo vazio. E o que separa a figura do
+# ceu e da agua; sem isso, caractere grande vira mancha.
+CORTE = 0.50
 
 
 def virar_ascii(caminho: str, recorte=None):
@@ -42,7 +51,11 @@ def virar_ascii(caminho: str, recorte=None):
         img = img.crop(((l - lado) // 2, (a - lado) // 2, (l + lado) // 2, (a + lado) // 2))
 
     # sem esticar o contraste, ceu e agua viram uma mancha unica de cinza
-    img = ImageOps.autocontrast(img, cutoff=2)
+    img = ImageOps.autocontrast(img, cutoff=1)
+
+    # Com celula grande sobra pouca resolucao; suavizar antes de reduzir tira
+    # o chiado das ondas, que senao disputa atencao com a figura.
+    img = img.filter(ImageFilter.GaussianBlur(4))
 
     # o caractere e mais alto que largo, entao a grade compensa a proporcao
     pequena = img.resize((COLUNAS, LINHAS), Image.LANCZOS)
@@ -56,7 +69,8 @@ def virar_ascii(caminho: str, recorte=None):
 
             # O sujeito e escuro contra vela e ceu claros. Sem inverter, a vela
             # vira um bloco solido e a pessoa desaparece.
-            densidade = (1 - brilho) ** 1.3
+            escuro = 1 - brilho
+            densidade = 0.0 if escuro < CORTE else (escuro - CORTE) / (1 - CORTE)
             glifo = RAMPA[min(int(densidade * len(RAMPA)), len(RAMPA) - 1)]
 
             # Levanta a exposicao sem normalizar pixel a pixel: normalizar
@@ -69,11 +83,11 @@ def virar_ascii(caminho: str, recorte=None):
 
 
 def montar(foto: str, saida: str, linhas_painel, recorte=None):
-    global COLUNAS, LINHAS
+    global LINHAS
     if recorte:
-        # altura da arte fixa; a largura sai da proporcao do recorte
+        # numero de linhas sai da proporcao do recorte e da celula retangular
         l, a = recorte[2] - recorte[0], recorte[3] - recorte[1]
-        COLUNAS = int(LINHAS / ((a / l) * (CELULA_L / CELULA_A)))
+        LINHAS = int(COLUNAS * (a / l) * (CELULA_L / CELULA_A))
     arte = virar_ascii(foto, recorte)
 
     margem = 26
@@ -123,7 +137,66 @@ def montar(foto: str, saida: str, linhas_painel, recorte=None):
     print(f"{saida}  {L}x{A}")
 
 
-PAINEL = [
+def buscar_stats():
+    """
+    Numeros do GitHub na hora de gerar, para o cartao nao envelhecer.
+    Sem rede, cai nos ultimos valores conhecidos.
+    """
+    conhecidos = {"repos": 2, "seguidores": 5, "stars": 0, "commits": 123, "loc": 37115}
+    try:
+        def pega(url, cabecalho=None):
+            req = urllib.request.Request(url, headers=cabecalho or {"User-Agent": "capa"})
+            return json.load(urllib.request.urlopen(req, timeout=15))
+
+        u = pega("https://api.github.com/users/cspatric")
+        repos = pega("https://api.github.com/users/cspatric/repos?per_page=100")
+        commits = pega(
+            "https://api.github.com/search/commits?q=author:cspatric&per_page=1",
+            {"User-Agent": "capa", "Accept": "application/vnd.github.cloak-preview+json"},
+        )
+        return {
+            "repos": u["public_repos"],
+            "seguidores": u["followers"],
+            "stars": sum(r.get("stargazers_count", 0) for r in repos),
+            "commits": commits.get("total_count", conhecidos["commits"]),
+            "loc": conhecidos["loc"],  # contado clonando os repos; nao vem da API
+        }
+    except Exception:
+        return conhecidos
+
+
+def montar_painel():
+    g = buscar_stats()
+    return [
+        ("titulo", "patric@meetpatric", ""),
+        ("linha", "OS:", "Ubuntu 24.04 LTS"),
+        ("linha", "Editor:", "VS Code"),
+        ("linha", "Role:", "Back-End Software Engineer"),
+        ("linha", "Company:", "IGMA  ·  Worda"),
+        ("linha", "Education:", "B.Sc. Software Engineering"),
+        ("linha", "Certifications:", "Meta Back-End  ·  Meta Front-End"),
+        ("vazio", "", ""),
+        ("linha", "Languages.Server:", "Python, PHP, Node.js"),
+        ("linha", "Languages.Client:", "TypeScript, React, React Native"),
+        ("linha", "Languages.Spoken:", "Portuguese (native), English (C1)"),
+        ("vazio", "", ""),
+        ("linha", "Focus.Backend:", "APIs, DDD, Integrations"),
+        ("linha", "Focus.Automation:", "RPA, Data Pipelines"),
+        ("linha", "Focus.AI:", "LLM Applications"),
+        ("vazio", "", ""),
+        ("secao", "Contact", ""),
+        ("linha", "Portfolio.Link:", "meetpatric.dev"),
+        ("linha", "Email.Work:", "patricsilva4cs@gmail.com"),
+        ("linha", "GitHub:", "github.com/cspatric"),
+        ("vazio", "", ""),
+        ("secao", "GitHub Stats", ""),
+        ("linha", "Repos:", f"{g['repos']}   |   Stars:  {g['stars']}"),
+        ("linha", "Commits:", f"{g['commits']}   |   Followers:  {g['seguidores']}"),
+        ("linha", "GitHub LOC:", f"{g['loc']:,}"),
+    ]
+
+
+PAINEL_ANTIGO = [
     ("titulo", "patric@meetpatric", ""),
     ("linha", "OS:", "Ubuntu 24.04 LTS"),
     ("linha", "Editor:", "VS Code"),
@@ -150,5 +223,5 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit("uso: gerar-capa.py <foto.jpg> [saida.png]")
     # recorte em volta da pessoa; o centro da foto e so vela e agua
-    RECORTE = (900, 170, 1480, 1000)
-    montar(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else ".assets/capa.png", PAINEL, RECORTE)
+    RECORTE = (940, 180, 1440, 980)
+    montar(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else ".assets/capa.png", montar_painel(), RECORTE)
