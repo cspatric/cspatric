@@ -23,7 +23,7 @@ TITULO = (210, 168, 255)
 VERDE = (63, 185, 80)
 
 # do mais escuro ao mais claro; o fundo e escuro, entao brilho alto = glifo cheio
-RAMPA = " .:-=+*#@"
+RAMPA = " .+#@"
 
 # Foto precisa de bem mais celulas que um logo para continuar reconhecivel.
 # Menos colunas = caractere maior. Abaixo de ~70 a figura deixa de ser
@@ -36,7 +36,7 @@ FONTE_ARTE = 20
 
 # Abaixo deste ponto a celula vira fundo vazio. E o que separa a figura do
 # ceu e da agua; sem isso, caractere grande vira mancha.
-CORTE = 0.20
+CORTE = 0.50
 
 
 def virar_ascii(caminho: str, recorte=None):
@@ -57,11 +57,6 @@ def virar_ascii(caminho: str, recorte=None):
     # o chiado das ondas, que senao disputa atencao com a figura.
     img = img.filter(ImageFilter.GaussianBlur(10))
 
-    # Equalizar espalha o histograma e traz muitos tons, mas sozinho apaga a
-    # separacao entre figura e fundo. Misturamos os dois: 60% equalizado
-    # rende a variacao de cinza sem perder o contorno.
-    cinza = img.convert("L")
-    img = Image.blend(cinza, ImageOps.equalize(cinza), 0.6).convert("RGB")
 
     # o caractere e mais alto que largo, entao a grade compensa a proporcao
     pequena = img.resize((COLUNAS, LINHAS), Image.LANCZOS)
@@ -79,10 +74,9 @@ def virar_ascii(caminho: str, recorte=None):
             densidade = 0.0 if escuro < CORTE else (escuro - CORTE) / (1 - CORTE)
             glifo = RAMPA[min(int(densidade * len(RAMPA)), len(RAMPA) - 1)]
 
-            # Preto e branco com faixa larga: do cinza fraco ao branco. Uma
-            # faixa estreita achata a imagem e ela perde a sensacao de foto.
-            tom = int(30 + 225 * densidade)
-            cor = (tom, tom, tom)
+            # Levanta a exposicao sem normalizar pixel a pixel: normalizar
+            # amplifica ruido nos escuros e a foto vira neon.
+            cor = tuple(min(255, int(((c / 255) ** 0.50) * 255 * 1.35)) for c in (r, g, b))
 
             linha.append((glifo, cor))
         grade.append(linha)
