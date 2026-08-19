@@ -1,4 +1,6 @@
-<h1 align="center">Patric Silva</h1>
+<p align="center">
+  <img src=".assets/capa.png" alt="Patric Silva — back-end software engineer" width="100%">
+</p>
 
 <p align="center">
   <strong>Back-end focused software engineer</strong> — comfortable across the stack.<br>
