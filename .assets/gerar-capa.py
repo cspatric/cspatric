@@ -73,9 +73,9 @@ def virar_ascii(caminho: str, recorte=None):
             densidade = 0.0 if escuro < CORTE else (escuro - CORTE) / (1 - CORTE)
             glifo = RAMPA[min(int(densidade * len(RAMPA)), len(RAMPA) - 1)]
 
-            # Levanta a exposicao sem normalizar pixel a pixel: normalizar
-            # amplifica ruido nos escuros e a foto vira neon.
-            cor = tuple(min(255, int(((c / 255) ** 0.50) * 255 * 1.35)) for c in (r, g, b))
+            # Sem cor: o tom sai da densidade, do cinza medio ao branco.
+            tom = int(135 + 120 * densidade)
+            cor = (tom, tom, tom)
 
             linha.append((glifo, cor))
         grade.append(linha)
@@ -83,11 +83,13 @@ def virar_ascii(caminho: str, recorte=None):
 
 
 def montar(foto: str, saida: str, linhas_painel, recorte=None):
-    global LINHAS
+    global COLUNAS, LINHAS
     if recorte:
-        # numero de linhas sai da proporcao do recorte e da celula retangular
+        # A arte tem a mesma altura do painel; a largura sai da proporcao do
+        # recorte, para nao esticar a foto.
         l, a = recorte[2] - recorte[0], recorte[3] - recorte[1]
-        LINHAS = int(COLUNAS * (a / l) * (CELULA_L / CELULA_A))
+        LINHAS = round(len(linhas_painel) * 18 / CELULA_A)
+        COLUNAS = round(LINHAS / ((a / l) * (CELULA_L / CELULA_A)))
     arte = virar_ascii(foto, recorte)
 
     margem = 26
@@ -110,7 +112,7 @@ def montar(foto: str, saida: str, linhas_painel, recorte=None):
 
     # painel, centralizado na vertical contra a arte
     px = margem + largura_arte + 34
-    py = margem + max(0, (LINHAS * CELULA_A - len(linhas_painel) * 18) // 2)
+    py = margem
     for tipo, esquerda, direita in linhas_painel:
         if tipo == "titulo":
             d.text((px, py), esquerda, font=painel_negrito, fill=VERDE)
@@ -223,5 +225,5 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit("uso: gerar-capa.py <foto.jpg> [saida.png]")
     # recorte em volta da pessoa; o centro da foto e so vela e agua
-    RECORTE = (940, 180, 1440, 980)
+    RECORTE = (950, 195, 1450, 775)
     montar(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else ".assets/capa.png", montar_painel(), RECORTE)
