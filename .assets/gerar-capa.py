@@ -28,11 +28,11 @@ RAMPA = " .+#@"
 # Foto precisa de bem mais celulas que um logo para continuar reconhecivel.
 # Menos colunas = caractere maior. Abaixo de ~70 a figura deixa de ser
 # reconhecivel: fotografia nao sobrevive em baixa resolucao como um logo.
-COLUNAS = 64
-LINHAS = 61
+COLUNAS = 32
+LINHAS = 30
 CORPO = 13                     # altura da fonte do painel
-CELULA_L, CELULA_A = 6, 10     # tamanho da celula da arte
-FONTE_ARTE = 10
+CELULA_L, CELULA_A = 12, 20    # tamanho da celula da arte
+FONTE_ARTE = 20
 
 # Abaixo deste ponto a celula vira fundo vazio. E o que separa a figura do
 # ceu e da agua; sem isso, caractere grande vira mancha.
@@ -55,7 +55,7 @@ def virar_ascii(caminho: str, recorte=None):
 
     # Com celula grande sobra pouca resolucao; suavizar antes de reduzir tira
     # o chiado das ondas, que senao disputa atencao com a figura.
-    img = img.filter(ImageFilter.GaussianBlur(4))
+    img = img.filter(ImageFilter.GaussianBlur(10))
 
     # o caractere e mais alto que largo, entao a grade compensa a proporcao
     pequena = img.resize((COLUNAS, LINHAS), Image.LANCZOS)
