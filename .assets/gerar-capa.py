@@ -36,7 +36,7 @@ FONTE_ARTE = 20
 
 # Abaixo deste ponto a celula vira fundo vazio. E o que separa a figura do
 # ceu e da agua; sem isso, caractere grande vira mancha.
-CORTE = 0.42
+CORTE = 0.20
 
 
 def virar_ascii(caminho: str, recorte=None):
@@ -57,6 +57,12 @@ def virar_ascii(caminho: str, recorte=None):
     # o chiado das ondas, que senao disputa atencao com a figura.
     img = img.filter(ImageFilter.GaussianBlur(10))
 
+    # Equalizar espalha o histograma e traz muitos tons, mas sozinho apaga a
+    # separacao entre figura e fundo. Misturamos os dois: 60% equalizado
+    # rende a variacao de cinza sem perder o contorno.
+    cinza = img.convert("L")
+    img = Image.blend(cinza, ImageOps.equalize(cinza), 0.6).convert("RGB")
+
     # o caractere e mais alto que largo, entao a grade compensa a proporcao
     pequena = img.resize((COLUNAS, LINHAS), Image.LANCZOS)
 
@@ -75,7 +81,7 @@ def virar_ascii(caminho: str, recorte=None):
 
             # Preto e branco com faixa larga: do cinza fraco ao branco. Uma
             # faixa estreita achata a imagem e ela perde a sensacao de foto.
-            tom = int(45 + 210 * (densidade ** 0.85))
+            tom = int(30 + 225 * densidade)
             cor = (tom, tom, tom)
 
             linha.append((glifo, cor))
